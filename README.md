@@ -29,7 +29,7 @@ An employee named shyam, working in a sensitive department, was recently placed 
      ```
      ```kql
      DeviceFileEvents
-     | where DeviceName == "windows-target-1"
+     | where DeviceName == "first-test"
      | where FileName endswith ".zip"
      | order by Timestamp desc
      ```
@@ -37,33 +37,28 @@ An employee named shyam, working in a sensitive department, was recently placed 
 
      
 2. **⚙️ Process Analysis:**  
-   - **Observed Behavior:** I took one of the instances of a zip file being created, took the timestamp and searched under DeviceProcessEvents for anything happening 2 minutes before the archive was created and 2 mintutes after. I discoverd around the same time. apowershellscript silently installed 7zip and then used 7zip to zip up employee data into an archive.
+   - **Observed Behavior:** I took one of the instances of a zip file being created, took the timestamp and searched under DeviceProcessEvents for anything happening 2 minutes before the archive was created and 2 mintutes after. I discoverd around the same time. a powershellscript silently installed 7zip and then used 7zip to zip up employee data into an archive.
    - **Detection Query (KQL):**  
 
-     ```kql
-     let VMName = "windows-target-1";
-     let specificTime = datetime(2025-01-05T21:48:40.6546522Z);
-     DeviceProcessEvents
-     | where Timestamp between ((specificTime - 2m) .. (specificTime + 2m))
-     | where DeviceName == VMName
-     | order by Timestamp desc
-     | project Timestamp, DeviceName, ActionType, FileName, ProcessCommandLine
-     ```
+       ```kql
+         let tts= datetime(2025-03-31T13:41:42.1394045Z);
+         DeviceProcessEvents
+         | where DeviceName == "first-test"
+         | where Timestamp between ((tts-2m) .. (tts + 2m))
+
+      ```
 ![Screenshot 2025-01-05 180046](https://github.com/user-attachments/assets/12d51ef5-8b84-4b41-9123-99adcbd3edbe)
 
 
    3. **🌐 Network Exfiltration Check:**  
-   - **Observed Behavior:** No evidence of data exfiltration via network logs during the time frame.  
+   - **Observed Behavior:** I searched around the same time period for any evidence of exfiltration from the network, but I didn’t see any logs indicating as such. 
 
    - **Detection Query (KQL):**  
 
      ```kql
-     let VMName = "windows-target-1";
-     let specificTime = datetime(2025-01-05T21:48:40.6546522Z);
-     DeviceProcessEvents
-     | where Timestamp between ((specificTime - 2m) .. (specificTime + 2m))
-     | where DeviceName == VMName
-     | order by Timestamp desc
+      DeviceNetworkEvents
+      | where DeviceName ==  "first-test"
+      | where Timestamp between ((tts-4m) .. (tts+4m) )
      ```  
 
 4. **📝 Response:**  
